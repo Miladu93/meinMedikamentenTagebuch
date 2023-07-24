@@ -1,11 +1,16 @@
 import Heading from "../components/Heading";
-import SubHeading from "../components/SubHeading";
+import MediList from "../components/MediList"
+
+//import SubHeading from "../components/SubHeading";
+//import React from 'react';
+
 
 export default function Home() {
   return (
     <main>
-      <Heading>🏄‍♂️🏄‍♀️🏄 Capstone Template 🏄🏄‍♀️🏄‍♂️</Heading>
-      <SubHeading>Happy hacking!</SubHeading>
+      <Heading>Mein MedikamentenTagebuch</Heading>
+      <MediList/>
     </main>
   );
 }
+
