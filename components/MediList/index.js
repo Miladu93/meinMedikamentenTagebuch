@@ -2,52 +2,88 @@ import styled from 'styled-components';
 import { useState } from 'react';
 import { dummyMedications } from '../../dummydata';
 
-
 export default function MediList() {
-  const [medikament, setMedikament] = useState('');
-  const [dosage, setDosage] = useState('');
+  const [medications, setMedications] = useState(dummyMedications);
+  const [medication, setMedication] = useState({ medicationName: '', dosage: '' });
+  const [searchQuery, setSearchQuery] = useState('');
 
-  const handleAddMedikament = (e) => {
-    e.preventDefault();
-    const newMedikament = {
-      id: dummyMedications.length + 1,
-      medicationName: medikament,
-      dosage: dosage,
-    };
-    setMedikament('');
-    setDosage('');
+  const handleAddMedication = (event) => {
+    event.preventDefault();
+    setMedications([...medications, { ...medication, id: Date.now() }]);
+    setMedication({ medicationName: '', dosage: '' });
+  };
+
+  const handleSearch = () => {
+    const filteredMedications = medications.filter(
+      (med) =>
+        med.medicationName.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+    setMedications(filteredMedications);
+  };
+
+  const handleEditMedication = (id, updatedMedication) => {
+    const updatedMedications = medications.map((med) =>
+      med.id === id ? { ...med, ...updatedMedication } : med
+    );
+    setMedications(updatedMedications);
+  };
+
+  const handleDeleteMedication = (id) => {
+    const shouldDelete = window.confirm('Are you sure you want to delete this medication entry?');
+    if (shouldDelete) {
+      const updatedMedications = medications.filter((med) => med.id !== id);
+      setMedications(updatedMedications);
+    }
   };
 
   return (
     <StyledContainer>
-      <Form onSubmit={handleAddMedikament}>
+      <SearchContainer>
         <input
           type="text"
-          placeholder="Medikament eingeben"
-          value={medikament}
-          onChange={(e) => setMedikament(e.target.value)}
+          placeholder="Search for medications"
+          value={searchQuery}
+          onChange={(event) => setSearchQuery(event.target.value)}
+        />
+        <SearchButton onClick={handleSearch}>Search</SearchButton>
+      </SearchContainer>
+
+      <Form onSubmit={handleAddMedication}>
+        <input
+          type="text"
+          placeholder="Enter Medication"
+          value={medication.medicationName}
+          onChange={(event) => setMedication({ ...medication, medicationName: event.target.value })}
           required
         />
         <DosageInputContainer>
           <input
             type="text"
-            placeholder="Dosierung eingeben"
-            value={dosage}
-            onChange={(e) => setDosage(e.target.value)}
+            placeholder="Enter Dosage"
+            value={medication.dosage}
+            onChange={(event) => setMedication({ ...medication, dosage: event.target.value })}
             required
           />
-          <SubmitButton type="submit">Hinzufügen</SubmitButton>
+          <SubmitButton type="submit">Add Medication</SubmitButton>
         </DosageInputContainer>
       </Form>
 
-      <StyledContainer>
-        {dummyMedications.map((medication) => (
-          <MedikamentWrapper key={medication.id}>
+      <MedicationList>
+        {medications.map((medication) => (
+          <MedicationWrapper key={medication.id}>
             <StyledItem>{medication.medicationName}</StyledItem>
             <StyledItem>{medication.dosage}</StyledItem>
-          </MedikamentWrapper>
+            <ButtonContainer>
+              <EditButton onClick={() => handleEditMedication(medication.id, { medicationName: 'Updated Name', dosage: 'Updated Dosage' })}>
+                Edit
+              </EditButton>
+              <DeleteButton onClick={() => handleDeleteMedication(medication.id)}>
+                Delete
+              </DeleteButton>
+            </ButtonContainer>
+          </MedicationWrapper>
         ))}
-      </StyledContainer>
+      </MedicationList>
     </StyledContainer>
   );
 }
@@ -63,11 +99,29 @@ const Form = styled.form`
 
 const DosageInputContainer = styled.div`
   display: flex;
-  align-items: center; /* Vertically center the input and button */
+  align-items: center; 
 `;
 
+const SearchContainer = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  margin-bottom: 10px;
+`;
 
-const MedikamentWrapper = styled.div`
+const SearchButton = styled.button`
+  margin-left: 10px;
+`;
+
+const MedicationList = styled.ul`
+  max-height: 300px; 
+  overflow: auto; 
+  list-style: none;
+  padding: 0;
+  margin: 0;
+`;
+
+const MedicationWrapper = styled.li`
   display: flex;
   justify-content: space-evenly;
   border: 1px solid #ddd;
@@ -80,7 +134,19 @@ const StyledItem = styled.div`
   padding: 5px 10px;
 `;
 
+const ButtonContainer = styled.div`
+  display: flex;
+`;
+
+const EditButton = styled.button`
+  margin-right: 10px;
+`;
+
+const DeleteButton = styled.button`
+  background-color: #f44336;
+  color: white;
+`;
+
 const SubmitButton = styled.button`
   margin-left: 10px; 
 `;
-
