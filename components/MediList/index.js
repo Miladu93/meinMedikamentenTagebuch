@@ -21,11 +21,16 @@ export default function MediList() {
     setMedications(filteredMedications);
   };
 
-  const handleEditMedication = (id, updatedMedication) => {
-    const updatedMedications = medications.map((med) =>
-      med.id === id ? { ...med, ...updatedMedication } : med
-    );
-    setMedications(updatedMedications);
+  const handleEditMedication = (id) => {
+    const updatedMedicationName = prompt('Enter updated name:', medications.find((med) => med.id === id)?.medicationName || '');
+    const updatedDosage = prompt('Enter updated dosage:', medications.find((med) => med.id === id)?.dosage || '');
+    
+    if (updatedMedicationName !== null && updatedDosage !== null) {
+      const updatedMedications = medications.map((med) =>
+        med.id === id ? { ...med, medicationName: updatedMedicationName, dosage: updatedDosage } : med
+      );
+      setMedications(updatedMedications);
+    }
   };
 
   const handleDeleteMedication = (id) => {
@@ -74,7 +79,7 @@ export default function MediList() {
             <StyledItem>{medication.medicationName}</StyledItem>
             <StyledItem>{medication.dosage}</StyledItem>
             <ButtonContainer>
-              <EditButton onClick={() => handleEditMedication(medication.id, { medicationName: 'Updated Name', dosage: 'Updated Dosage' })}>
+              <EditButton onClick={() => handleEditMedication(medication.id)}>
                 Edit
               </EditButton>
               <DeleteButton onClick={() => handleDeleteMedication(medication.id)}>
