@@ -2,10 +2,10 @@ import styled from 'styled-components';
 import { useState } from 'react';
 import { dummyMedications } from '../../dummydata';
 
-
 export default function MediList() {
   const [medikament, setMedikament] = useState('');
   const [dosage, setDosage] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
 
   const handleAddMedikament = (e) => {
     e.preventDefault();
@@ -18,12 +18,31 @@ export default function MediList() {
     setDosage('');
   };
 
+  const handleSearch = () => {
+    const filteredMedications = dummyMedications.filter(
+      (medication) =>
+        medication.medicationName.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+
+    setMedications(filteredMedications);
+  };
+
   return (
     <StyledContainer>
+      <SearchContainer>
+        <input
+          type="text"
+          placeholder="Search for medications"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+        />
+        <SearchButton onClick={handleSearch}>Search</SearchButton>
+      </SearchContainer>
+
       <Form onSubmit={handleAddMedikament}>
         <input
           type="text"
-          placeholder="Medikament eingeben"
+          placeholder="Enter Medication"
           value={medikament}
           onChange={(e) => setMedikament(e.target.value)}
           required
@@ -31,23 +50,23 @@ export default function MediList() {
         <DosageInputContainer>
           <input
             type="text"
-            placeholder="Dosierung eingeben"
+            placeholder="Enter Dosage"
             value={dosage}
             onChange={(e) => setDosage(e.target.value)}
             required
           />
-          <SubmitButton type="submit">Hinzufügen</SubmitButton>
+          <SubmitButton type="submit">Add Medication</SubmitButton>
         </DosageInputContainer>
       </Form>
 
-      <StyledContainer>
+      <MedicationListContainer>
         {dummyMedications.map((medication) => (
           <MedikamentWrapper key={medication.id}>
             <StyledItem>{medication.medicationName}</StyledItem>
             <StyledItem>{medication.dosage}</StyledItem>
           </MedikamentWrapper>
         ))}
-      </StyledContainer>
+      </MedicationListContainer>
     </StyledContainer>
   );
 }
@@ -63,9 +82,24 @@ const Form = styled.form`
 
 const DosageInputContainer = styled.div`
   display: flex;
-  align-items: center; /* Vertically center the input and button */
+  align-items: center; 
 `;
 
+const SearchContainer = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  margin-bottom: 10px;
+`;
+
+const SearchButton = styled.button`
+  margin-left: 10px;
+`;
+
+const MedicationListContainer = styled.div`
+  max-height: 300px; 
+  overflow: auto; 
+`;
 
 const MedikamentWrapper = styled.div`
   display: flex;
@@ -83,4 +117,3 @@ const StyledItem = styled.div`
 const SubmitButton = styled.button`
   margin-left: 10px; 
 `;
-
