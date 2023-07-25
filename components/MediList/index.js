@@ -24,8 +24,16 @@ export default function MediList() {
 
   return (
     <StyledContainer>
-      {/* ... (previous code) */}
-      
+      <SearchContainer>
+        <input
+          type="text"
+          placeholder="Search for medications"
+          value={searchQuery}
+          onChange={(event) => setSearchQuery(event.target.value)}
+        />
+        <SearchButton onClick={handleSearch}>Search</SearchButton>
+      </SearchContainer>
+
       <Form onSubmit={handleAddMedikament}>
         <input
           type="text"
@@ -57,7 +65,6 @@ export default function MediList() {
     </StyledContainer>
   );
 }
-
 
 const StyledContainer = styled.div`
   padding: 50px;
