@@ -3,25 +3,20 @@ import { useState } from 'react';
 import { dummyMedications } from '../../dummydata';
 
 export default function MediList() {
-  const [medikament, setMedikament] = useState('');
-  const [dosage, setDosage] = useState('');
+  const [medications, setMedications] = useState(dummyMedications);
+  const [medication, setMedication] = useState({ medicationName: '', dosage: '' });
   const [searchQuery, setSearchQuery] = useState('');
 
-  const handleAddMedikament = (e) => {
-    e.preventDefault();
-    const newMedikament = {
-      id: dummyMedications.length + 1,
-      medicationName: medikament,
-      dosage: dosage,
-    };
-    setMedikament('');
-    setDosage('');
+  const handleAddMedikament = (event) => {
+    event.preventDefault();
+    setMedications([...medications, medication]);
+    setMedication({ medicationName: '', dosage: '' });
   };
 
   const handleSearch = () => {
-    const filteredMedications = dummyMedications.filter(
-      (medication) =>
-        medication.medicationName.toLowerCase().includes(searchQuery.toLowerCase())
+    const filteredMedications = medications.filter(
+      (med) =>
+        med.medicationName.toLowerCase().includes(searchQuery.toLowerCase())
     );
 
     setMedications(filteredMedications);
@@ -29,47 +24,40 @@ export default function MediList() {
 
   return (
     <StyledContainer>
-      <SearchContainer>
-        <input
-          type="text"
-          placeholder="Search for medications"
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-        />
-        <SearchButton onClick={handleSearch}>Search</SearchButton>
-      </SearchContainer>
-
+      {/* ... (previous code) */}
+      
       <Form onSubmit={handleAddMedikament}>
         <input
           type="text"
           placeholder="Enter Medication"
-          value={medikament}
-          onChange={(e) => setMedikament(e.target.value)}
+          value={medication.medicationName}
+          onChange={(event) => setMedication({ ...medication, medicationName: event.target.value })}
           required
         />
         <DosageInputContainer>
           <input
             type="text"
             placeholder="Enter Dosage"
-            value={dosage}
-            onChange={(e) => setDosage(e.target.value)}
+            value={medication.dosage}
+            onChange={(event) => setMedication({ ...medication, dosage: event.target.value })}
             required
           />
           <SubmitButton type="submit">Add Medication</SubmitButton>
         </DosageInputContainer>
       </Form>
 
-      <MedicationListContainer>
-        {dummyMedications.map((medication) => (
-          <MedikamentWrapper key={medication.id}>
+      <MedicationList>
+        {medications.map((medication) => (
+          <MedicationWrapper key={medication.id}>
             <StyledItem>{medication.medicationName}</StyledItem>
             <StyledItem>{medication.dosage}</StyledItem>
-          </MedikamentWrapper>
+          </MedicationWrapper>
         ))}
-      </MedicationListContainer>
+      </MedicationList>
     </StyledContainer>
   );
 }
+
 
 const StyledContainer = styled.div`
   padding: 50px;
@@ -96,12 +84,15 @@ const SearchButton = styled.button`
   margin-left: 10px;
 `;
 
-const MedicationListContainer = styled.div`
+const MedicationList = styled.ul`
   max-height: 300px; 
   overflow: auto; 
+  list-style: none;
+  padding: 0;
+  margin: 0;
 `;
 
-const MedikamentWrapper = styled.div`
+const MedicationWrapper = styled.li`
   display: flex;
   justify-content: space-evenly;
   border: 1px solid #ddd;
