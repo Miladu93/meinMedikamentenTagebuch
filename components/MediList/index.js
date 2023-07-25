@@ -2,6 +2,7 @@ import styled from 'styled-components';
 import { useState } from 'react';
 import { dummyMedications } from '../../dummydata';
 
+
 export default function MediList() {
   const [medikament, setMedikament] = useState('');
   const [dosage, setDosage] = useState('');
@@ -13,13 +14,12 @@ export default function MediList() {
       medicationName: medikament,
       dosage: dosage,
     };
-    console.log('Neues Medikament:', newMedikament);
     setMedikament('');
     setDosage('');
   };
 
   return (
-    <Container>
+    <StyledContainer>
       <Form onSubmit={handleAddMedikament}>
         <input
           type="text"
@@ -28,55 +28,59 @@ export default function MediList() {
           onChange={(e) => setMedikament(e.target.value)}
           required
         />
-        <input
-          type="text"
-          placeholder="Dosierung eingeben"
-          value={dosage}
-          onChange={(e) => setDosage(e.target.value)}
-          required
-        />
+        <DosageInputContainer>
+          <input
+            type="text"
+            placeholder="Dosierung eingeben"
+            value={dosage}
+            onChange={(e) => setDosage(e.target.value)}
+            required
+          />
+          <SubmitButton type="submit">Hinzufügen</SubmitButton>
+        </DosageInputContainer>
       </Form>
 
-      <MedikamentListContainer>
+      <StyledContainer>
         {dummyMedications.map((medication) => (
           <MedikamentWrapper key={medication.id}>
-            <Medikament>{medication.medicationName}</Medikament>
-            <Dosage>{medication.dosage}</Dosage>
+            <StyledItem>{medication.medicationName}</StyledItem>
+            <StyledItem>{medication.dosage}</StyledItem>
           </MedikamentWrapper>
         ))}
-      </MedikamentListContainer>
-    </Container>
+      </StyledContainer>
+    </StyledContainer>
   );
 }
 
-const Container = styled.div`
-padding: 50px;
+const StyledContainer = styled.div`
+  padding: 50px;
 `;
 
 const Form = styled.form`
-display: flex;
-justify-content: center;
+  display: flex;
+  justify-content: center;
 `;
 
-const MedikamentListContainer = styled.div`
-padding: 50px;
+const DosageInputContainer = styled.div`
+  display: flex;
+  align-items: center; /* Vertically center the input and button */
 `;
+
 
 const MedikamentWrapper = styled.div`
   display: flex;
   justify-content: space-evenly;
-  border: 1px solid #ddd; 
-  padding: 10px; 
-  margin-bottom: 10px; 
+  border: 1px solid #ddd;
+  padding: 10px;
+  margin-bottom: 10px;
 `;
 
-const Medikament = styled.div`
-  border: 1px solid black; 
-  padding: 5px 10px; 
+const StyledItem = styled.div`
+  border: 1px solid black;
+  padding: 5px 10px;
 `;
 
-const Dosage = styled.div`
-  border: 1px solid black; 
-  padding: 5px 10px; 
+const SubmitButton = styled.button`
+  margin-left: 10px; 
 `;
 
