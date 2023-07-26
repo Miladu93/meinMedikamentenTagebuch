@@ -1,5 +1,5 @@
+import React, { useState } from 'react';
 import styled from 'styled-components';
-import { useState } from 'react';
 import { dummyMedications } from '../../dummydata';
 
 export default function MediList() {
@@ -7,9 +7,9 @@ export default function MediList() {
   const [medication, setMedication] = useState({ medicationName: '', dosage: '' });
   const [searchQuery, setSearchQuery] = useState('');
 
-  const handleAddMedikament = (event) => {
+  const handleAddMedication = (event) => {
     event.preventDefault();
-    setMedications([...medications, medication]);
+    setMedications([...medications, { ...medication, id: Date.now(), favorite: false }]);
     setMedication({ medicationName: '', dosage: '' });
   };
 
@@ -20,6 +20,33 @@ export default function MediList() {
     );
 
     setMedications(filteredMedications);
+  };
+
+  const handleEditMedication = (id) => {
+    const updatedMedicationName = prompt('Enter updated name:', medications.find((med) => med.id === id)?.medicationName || '');
+    const updatedDosage = prompt('Enter updated dosage:', medications.find((med) => med.id === id)?.dosage || '');
+
+    if (updatedMedicationName !== null && updatedDosage !== null) {
+      const updatedMedications = medications.map((med) =>
+        med.id === id ? { ...med, medicationName: updatedMedicationName, dosage: updatedDosage } : med
+      );
+      setMedications(updatedMedications);
+    }
+  };
+
+  const handleDeleteMedication = (id) => {
+    const shouldDelete = window.confirm('Are you sure you want to delete this medication entry?');
+    if (shouldDelete) {
+      const updatedMedications = medications.filter((med) => med.id !== id);
+      setMedications(updatedMedications);
+    }
+  };
+
+  const handleToggleFavorite = (id) => {
+    const updatedMedications = medications.map((med) =>
+      med.id === id ? { ...med, favorite: !med.favorite } : med
+    );
+    setMedications(updatedMedications);
   };
 
   return (
@@ -34,7 +61,7 @@ export default function MediList() {
         <SearchButton onClick={handleSearch}>Search</SearchButton>
       </SearchContainer>
 
-      <Form onSubmit={handleAddMedikament}>
+      <Form onSubmit={handleAddMedication}>
         <input
           type="text"
           placeholder="Enter Medication"
@@ -59,6 +86,17 @@ export default function MediList() {
           <MedicationWrapper key={medication.id}>
             <StyledItem>{medication.medicationName}</StyledItem>
             <StyledItem>{medication.dosage}</StyledItem>
+            <ButtonContainer>
+              <EditButton onClick={() => handleEditMedication(medication.id)}>
+                Edit
+              </EditButton>
+              <DeleteButton onClick={() => handleDeleteMedication(medication.id)}>
+                Delete
+              </DeleteButton>
+              <FavButton favorite={medication.favorite} onClick={() => handleToggleFavorite(medication.id)}>
+                {medication.favorite ? 'Favorited' : 'Fav'}
+              </FavButton>
+            </ButtonContainer>
           </MedicationWrapper>
         ))}
       </MedicationList>
@@ -112,6 +150,28 @@ const StyledItem = styled.div`
   padding: 5px 10px;
 `;
 
+const ButtonContainer = styled.div`
+  display: flex;
+`;
+
+const EditButton = styled.button`
+  margin-right: 10px;
+`;
+
+const DeleteButton = styled.button`
+  background-color: #f44336;
+  color: white;
+`;
+
 const SubmitButton = styled.button`
   margin-left: 10px; 
 `;
+
+const FavButton = styled.button`
+  background-color: ${(props) => (props.favorite ? '#fbc02d' : 'transparent')};
+  color: ${(props) => (props.favorite ? '#ffffff' : '#000000')};
+  border: 1px solid #fbc02d;
+  margin-right: 10px;
+  cursor: pointer;
+`;
+
