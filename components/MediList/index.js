@@ -10,6 +10,7 @@ export default function MediList() {
   const handleAddMedication = (event) => {
     event.preventDefault();
     setMedications([...medications, { ...medication, id: Date.now() }]);
+
     setMedication({ medicationName: '', dosage: '' });
   };
 
@@ -18,6 +19,7 @@ export default function MediList() {
       (med) =>
         med.medicationName.toLowerCase().includes(searchQuery.toLowerCase())
     );
+
     setMedications(filteredMedications);
   };
 
@@ -39,7 +41,7 @@ export default function MediList() {
       const updatedMedications = medications.filter((med) => med.id !== id);
       setMedications(updatedMedications);
     }
-  };
+ };
 
   return (
     <StyledContainer>
@@ -56,6 +58,7 @@ export default function MediList() {
       <Form onSubmit={handleAddMedication}>
         <input
           type="text"
+
           placeholder="Enter Medication"
           value={medication.medicationName}
           onChange={(event) => setMedication({ ...medication, medicationName: event.target.value })}
@@ -125,7 +128,6 @@ const MedicationList = styled.ul`
   padding: 0;
   margin: 0;
 `;
-
 const MedicationWrapper = styled.li`
   display: flex;
   justify-content: space-evenly;
