@@ -7,9 +7,10 @@ export default function MediList() {
   const [medication, setMedication] = useState({ medicationName: '', dosage: '' });
   const [searchQuery, setSearchQuery] = useState('');
 
-  const handleAddMedikament = (event) => {
+  const handleAddMedication = (event) => {
     event.preventDefault();
-    setMedications([...medications, medication]);
+    setMedications([...medications, { ...medication, id: Date.now() }]);
+
     setMedication({ medicationName: '', dosage: '' });
   };
 
@@ -21,6 +22,26 @@ export default function MediList() {
 
     setMedications(filteredMedications);
   };
+
+  const handleEditMedication = (id) => {
+    const updatedMedicationName = prompt('Enter updated name:', medications.find((med) => med.id === id)?.medicationName || '');
+    const updatedDosage = prompt('Enter updated dosage:', medications.find((med) => med.id === id)?.dosage || '');
+    
+    if (updatedMedicationName !== null && updatedDosage !== null) {
+      const updatedMedications = medications.map((med) =>
+        med.id === id ? { ...med, medicationName: updatedMedicationName, dosage: updatedDosage } : med
+      );
+      setMedications(updatedMedications);
+    }
+  };
+
+  const handleDeleteMedication = (id) => {
+    const shouldDelete = window.confirm('Are you sure you want to delete this medication entry?');
+    if (shouldDelete) {
+      const updatedMedications = medications.filter((med) => med.id !== id);
+      setMedications(updatedMedications);
+    }
+ };
 
   return (
     <StyledContainer>
@@ -34,9 +55,10 @@ export default function MediList() {
         <SearchButton onClick={handleSearch}>Search</SearchButton>
       </SearchContainer>
 
-      <Form onSubmit={handleAddMedikament}>
+      <Form onSubmit={handleAddMedication}>
         <input
           type="text"
+
           placeholder="Enter Medication"
           value={medication.medicationName}
           onChange={(event) => setMedication({ ...medication, medicationName: event.target.value })}
@@ -59,6 +81,14 @@ export default function MediList() {
           <MedicationWrapper key={medication.id}>
             <StyledItem>{medication.medicationName}</StyledItem>
             <StyledItem>{medication.dosage}</StyledItem>
+            <ButtonContainer>
+              <EditButton onClick={() => handleEditMedication(medication.id)}>
+                Edit
+              </EditButton>
+              <DeleteButton onClick={() => handleDeleteMedication(medication.id)}>
+                Delete
+              </DeleteButton>
+            </ButtonContainer>
           </MedicationWrapper>
         ))}
       </MedicationList>
@@ -98,7 +128,6 @@ const MedicationList = styled.ul`
   padding: 0;
   margin: 0;
 `;
-
 const MedicationWrapper = styled.li`
   display: flex;
   justify-content: space-evenly;
@@ -110,6 +139,19 @@ const MedicationWrapper = styled.li`
 const StyledItem = styled.div`
   border: 1px solid black;
   padding: 5px 10px;
+`;
+
+const ButtonContainer = styled.div`
+  display: flex;
+`;
+
+const EditButton = styled.button`
+  margin-right: 10px;
+`;
+
+const DeleteButton = styled.button`
+  background-color: #f44336;
+  color: white;
 `;
 
 const SubmitButton = styled.button`
