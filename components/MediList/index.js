@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import styled from 'styled-components';
 import { dummyMedications } from '../../dummydata';
+import Link from 'next/link';
+import WeeklyOverview from "../WeeklyOverview";
 
 export default function MediList() {
   const [medications, setMedications] = useState(dummyMedications);
@@ -51,6 +53,9 @@ export default function MediList() {
 
   return (
     <StyledContainer>
+      <Link href="/weeklyoverview">
+        <NextPageButton>Zum Wochenüberblick</NextPageButton>
+      </Link>
       <SearchContainer>
         <input
           type="text"
@@ -103,6 +108,10 @@ export default function MediList() {
     </StyledContainer>
   );
 }
+
+const NextPageButton = styled.button`
+  padding-left: 10px;
+`;
 
 const StyledContainer = styled.div`
   padding: 50px;
