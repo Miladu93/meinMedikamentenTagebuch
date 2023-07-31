@@ -1,6 +1,8 @@
+import React, { useState } from 'react';
 import styled from 'styled-components';
-import { useState } from 'react';
 import { dummyMedications } from '../../dummydata';
+import Link from 'next/link';
+import WeeklyOverview from "../WeeklyOverview";
 
 export default function MediList() {
   const [medications, setMedications] = useState(dummyMedications);
@@ -9,8 +11,7 @@ export default function MediList() {
 
   const handleAddMedication = (event) => {
     event.preventDefault();
-    setMedications([...medications, { ...medication, id: Date.now() }]);
-
+    setMedications([...medications, { ...medication, id: Date.now(), favorite: false }]);
     setMedication({ medicationName: '', dosage: '' });
   };
 
@@ -26,7 +27,7 @@ export default function MediList() {
   const handleEditMedication = (id) => {
     const updatedMedicationName = prompt('Enter updated name:', medications.find((med) => med.id === id)?.medicationName || '');
     const updatedDosage = prompt('Enter updated dosage:', medications.find((med) => med.id === id)?.dosage || '');
-    
+
     if (updatedMedicationName !== null && updatedDosage !== null) {
       const updatedMedications = medications.map((med) =>
         med.id === id ? { ...med, medicationName: updatedMedicationName, dosage: updatedDosage } : med
@@ -41,10 +42,20 @@ export default function MediList() {
       const updatedMedications = medications.filter((med) => med.id !== id);
       setMedications(updatedMedications);
     }
- };
+  };
+
+  const handleToggleFavorite = (id) => {
+    const updatedMedications = medications.map((med) =>
+      med.id === id ? { ...med, favorite: !med.favorite } : med
+    );
+    setMedications(updatedMedications);
+  };
 
   return (
     <StyledContainer>
+      <Link href="/weeklyoverview">
+        <NextPageButton>Zum Wochenüberblick</NextPageButton>
+      </Link>
       <SearchContainer>
         <input
           type="text"
@@ -58,7 +69,6 @@ export default function MediList() {
       <Form onSubmit={handleAddMedication}>
         <input
           type="text"
-
           placeholder="Enter Medication"
           value={medication.medicationName}
           onChange={(event) => setMedication({ ...medication, medicationName: event.target.value })}
@@ -88,6 +98,9 @@ export default function MediList() {
               <DeleteButton onClick={() => handleDeleteMedication(medication.id)}>
                 Delete
               </DeleteButton>
+              <FavButton favorite={medication.favorite} onClick={() => handleToggleFavorite(medication.id)}>
+                {medication.favorite ? 'Favorited' : 'Fav'}
+              </FavButton>
             </ButtonContainer>
           </MedicationWrapper>
         ))}
@@ -95,6 +108,10 @@ export default function MediList() {
     </StyledContainer>
   );
 }
+
+const NextPageButton = styled.button`
+  padding-left: 10px;
+`;
 
 const StyledContainer = styled.div`
   padding: 50px;
@@ -128,6 +145,7 @@ const MedicationList = styled.ul`
   padding: 0;
   margin: 0;
 `;
+
 const MedicationWrapper = styled.li`
   display: flex;
   justify-content: space-evenly;
@@ -156,4 +174,12 @@ const DeleteButton = styled.button`
 
 const SubmitButton = styled.button`
   margin-left: 10px; 
+`;
+
+const FavButton = styled.button`
+  background-color: ${(props) => (props.favorite ? '#fbc02d' : 'transparent')};
+  color: ${(props) => (props.favorite ? '#ffffff' : '#000000')};
+  border: 1px solid #fbc02d;
+  margin-right: 10px;
+  cursor: pointer;
 `;
