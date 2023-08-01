@@ -183,4 +183,3 @@ const FavButton = styled.button`
   margin-right: 10px;
   cursor: pointer;
 `;
-
