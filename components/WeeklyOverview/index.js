@@ -28,6 +28,16 @@ export default function WeeklyOverview() {
     }));
   };
 
+  const handleDeleteMedication = (weekday, medicationIndex) => {
+    const updatedMedications = supplementsByWeekday[weekday].filter(
+      (_, index) => index !== medicationIndex
+    );
+    setSupplementsByWeekday((prevSupplements) => ({
+      ...prevSupplements,
+      [weekday]: updatedMedications,
+    }));
+  };
+
   const handleSearch = () => {
     const filteredData = {};
     weekdays.forEach((weekday) => {
@@ -79,10 +89,14 @@ export default function WeeklyOverview() {
               </MedicationSelect>
               <AddButton onClick={() => handleAddSupplement(weekday)}>Add</AddButton>
             </WeekdayContent>
-            {supplementsByWeekday[weekday].map((supplement) => (
-              <SupplementWrapper key={supplement.id}>
+            {supplementsByWeekday[weekday].map((supplement, index) => (
+              <SupplementWrapper key={index}>
+
                 <SupplementName>{supplement.medicationName}</SupplementName>
                 <SupplementDosage>{supplement.dosage}</SupplementDosage>
+                <DeleteButton onClick={() => handleDeleteMedication(weekday, index)}>
+                  Delete
+                </DeleteButton>
               </SupplementWrapper>
             ))}
           </Weekday>
@@ -135,6 +149,9 @@ const SupplementWrapper = styled.div`
   border: 1px solid #ddd;
   padding: 10px;
   margin-top: 5px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 `;
 
 const SupplementName = styled.div`
@@ -143,6 +160,11 @@ const SupplementName = styled.div`
 
 const SupplementDosage = styled.div``;
 
+
+const DeleteButton = styled.button`
+  background-color: #f44336;
+  color: white;
+`;
 const SearchContainer = styled.div`
   display: flex;
   align-items: center;
