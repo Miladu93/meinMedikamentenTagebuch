@@ -91,6 +91,7 @@ export default function WeeklyOverview() {
             </WeekdayContent>
             {supplementsByWeekday[weekday].map((supplement, index) => (
               <SupplementWrapper key={index}>
+
                 <SupplementName>{supplement.medicationName}</SupplementName>
                 <SupplementDosage>{supplement.dosage}</SupplementDosage>
                 <DeleteButton onClick={() => handleDeleteMedication(weekday, index)}>
@@ -159,11 +160,11 @@ const SupplementName = styled.div`
 
 const SupplementDosage = styled.div``;
 
+
 const DeleteButton = styled.button`
   background-color: #f44336;
   color: white;
 `;
-
 const SearchContainer = styled.div`
   display: flex;
   align-items: center;
