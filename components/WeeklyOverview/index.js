@@ -20,11 +20,41 @@ export default function WeeklyOverview() {
     });
     return supplements;
   });
+  const [supplementStatus, setSupplementStatus] = useState(() => {
+    const status = {};
+    weekdays.forEach((weekday) => {
+      status[weekday] = {};
+      supplementsByWeekday[weekday].forEach((supplement) => {
+        status[weekday][supplement.medicationName] = false;
+      });
+    });
+    return status;
+  });
 
   const handleAddSupplement = (weekday) => {
     setSupplementsByWeekday((prevSupplements) => ({
       ...prevSupplements,
       [weekday]: [...prevSupplements[weekday], selectedMedicationsByWeekday[weekday]],
+    }));
+  };
+
+  const handleDeleteMedication = (weekday, medicationIndex) => {
+    const updatedMedications = supplementsByWeekday[weekday].filter(
+      (_, index) => index !== medicationIndex
+    );
+    setSupplementsByWeekday((prevSupplements) => ({
+      ...prevSupplements,
+      [weekday]: updatedMedications,
+    }));
+  };
+
+  const handleCheckSupplement = (weekday, medicationName) => {
+    setSupplementStatus((prevStatus) => ({
+      ...prevStatus,
+      [weekday]: {
+        ...prevStatus[weekday],
+        [medicationName]: !prevStatus[weekday][medicationName],
+      },
     }));
   };
 
@@ -79,10 +109,21 @@ export default function WeeklyOverview() {
               </MedicationSelect>
               <AddButton onClick={() => handleAddSupplement(weekday)}>Add</AddButton>
             </WeekdayContent>
-            {supplementsByWeekday[weekday].map((supplement) => (
-              <SupplementWrapper key={supplement.id}>
+            {supplementsByWeekday[weekday].map((supplement, index) => (
+              <SupplementWrapper key={index}>
                 <SupplementName>{supplement.medicationName}</SupplementName>
                 <SupplementDosage>{supplement.dosage}</SupplementDosage>
+                <ButtonContainer>
+                  <CheckButton
+                    checked={supplementStatus[weekday][supplement.medicationName]}
+                    onClick={() => handleCheckSupplement(weekday, supplement.medicationName)}
+                  >
+                    {supplementStatus[weekday][supplement.medicationName] ? 'Taken' : 'Not Taken'}
+                  </CheckButton>
+                  <DeleteButton onClick={() => handleDeleteMedication(weekday, index)}>
+                    Delete
+                  </DeleteButton>
+                </ButtonContainer>
               </SupplementWrapper>
             ))}
           </Weekday>
@@ -135,6 +176,9 @@ const SupplementWrapper = styled.div`
   border: 1px solid #ddd;
   padding: 10px;
   margin-top: 5px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 `;
 
 const SupplementName = styled.div`
@@ -142,6 +186,20 @@ const SupplementName = styled.div`
 `;
 
 const SupplementDosage = styled.div``;
+
+const ButtonContainer = styled.div`
+  display: flex;
+`;
+
+const CheckButton = styled.button`
+  background-color: ${(props) => (props.checked ? '#4caf50' : '#ddd')};
+  color: ${(props) => (props.checked ? 'white' : '#333')};
+`;
+
+const DeleteButton = styled.button`
+  background-color: #f44336;
+  color: white;
+`;
 
 const SearchContainer = styled.div`
   display: flex;
