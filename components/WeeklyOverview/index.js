@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import styled from 'styled-components';
 import { dummyMedications } from '../../dummydata';
+import { uid } from 'uid';
 
 export default function WeeklyOverview() {
   const weekdays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
@@ -25,7 +26,7 @@ export default function WeeklyOverview() {
     weekdays.forEach((weekday) => {
       status[weekday] = {};
       supplementsByWeekday[weekday].forEach((supplement) => {
-        status[weekday][supplement.medicationName] = false;
+        status[weekday][supplement.key] = false;
       });
     });
     return status;
@@ -38,22 +39,32 @@ export default function WeeklyOverview() {
     }));
   };
 
-  const handleDeleteMedication = (weekday, medicationIndex) => {
+  const handleDeleteMedication = (weekday, supplementKey) => {
     const updatedMedications = supplementsByWeekday[weekday].filter(
-      (_, index) => index !== medicationIndex
+      (supplement) => supplement.key !== supplementKey
     );
+
     setSupplementsByWeekday((prevSupplements) => ({
       ...prevSupplements,
       [weekday]: updatedMedications,
     }));
-  };
 
-  const handleCheckSupplement = (weekday, medicationName) => {
+    // Auch den Status aktualisieren
     setSupplementStatus((prevStatus) => ({
       ...prevStatus,
       [weekday]: {
         ...prevStatus[weekday],
-        [medicationName]: !prevStatus[weekday][medicationName],
+        [supplementKey]: false, // Setze den Status auf "Not Taken" beim Löschen
+      },
+    }));
+  };
+
+  const handleCheckSupplement = (weekday, supplementKey) => {
+    setSupplementStatus((prevStatus) => ({
+      ...prevStatus,
+      [weekday]: {
+        ...prevStatus[weekday],
+        [supplementKey]: !prevStatus[weekday][supplementKey],
       },
     }));
   };
@@ -102,25 +113,25 @@ export default function WeeklyOverview() {
                 }}
               >
                 {dummyMedications.map((med) => (
-                  <option key={med.id} value={med.medicationName}>
+                  <option key={med.key} value={med.medicationName}>
                     {med.medicationName}
                   </option>
                 ))}
               </MedicationSelect>
               <AddButton onClick={() => handleAddSupplement(weekday)}>Add</AddButton>
             </WeekdayContent>
-            {supplementsByWeekday[weekday].map((supplement, index) => (
-              <SupplementWrapper key={index}>
+            {supplementsByWeekday[weekday].map((supplement) => (
+              <SupplementWrapper key={`${supplement.medicationName}-${supplement.dosage}`}>
                 <SupplementName>{supplement.medicationName}</SupplementName>
                 <SupplementDosage>{supplement.dosage}</SupplementDosage>
                 <ButtonContainer>
                   <CheckButton
-                    checked={supplementStatus[weekday][supplement.medicationName]}
-                    onClick={() => handleCheckSupplement(weekday, supplement.medicationName)}
+                    checked={supplementStatus[weekday][supplement.key]}
+                    onClick={() => handleCheckSupplement(weekday, supplement.key)}
                   >
-                    {supplementStatus[weekday][supplement.medicationName] ? 'Taken' : 'Not Taken'}
+                    {supplementStatus[weekday][supplement.key] ? 'Taken' : 'Not Taken'}
                   </CheckButton>
-                  <DeleteButton onClick={() => handleDeleteMedication(weekday, index)}>
+                  <DeleteButton onClick={() => handleDeleteMedication(weekday, supplement.key)}>
                     Delete
                   </DeleteButton>
                 </ButtonContainer>
