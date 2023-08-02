@@ -49,12 +49,11 @@ export default function WeeklyOverview() {
       [weekday]: updatedMedications,
     }));
 
-    // Auch den Status aktualisieren
     setSupplementStatus((prevStatus) => ({
       ...prevStatus,
       [weekday]: {
         ...prevStatus[weekday],
-        [supplementKey]: false, // Setze den Status auf "Not Taken" beim Löschen
+        [supplementKey]: false, 
       },
     }));
   };
