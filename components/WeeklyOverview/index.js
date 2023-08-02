@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import styled from 'styled-components';
 import { dummyMedications } from '../../dummydata';
+import { uid } from 'uid';
 
 export default function WeeklyOverview() {
   const weekdays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
@@ -20,6 +21,16 @@ export default function WeeklyOverview() {
     });
     return supplements;
   });
+  const [supplementStatus, setSupplementStatus] = useState(() => {
+    const status = {};
+    weekdays.forEach((weekday) => {
+      status[weekday] = {};
+      supplementsByWeekday[weekday].forEach((supplement) => {
+        status[weekday][supplement.medicationName] = false;
+      });
+    });
+    return status;
+  });
 
   const handleAddSupplement = (weekday) => {
     setSupplementsByWeekday((prevSupplements) => ({
@@ -29,12 +40,34 @@ export default function WeeklyOverview() {
   };
 
   const handleDeleteMedication = (weekday, medicationIndex) => {
+    const medicationToDelete = supplementsByWeekday[weekday][medicationIndex];
+
     const updatedMedications = supplementsByWeekday[weekday].filter(
       (_, index) => index !== medicationIndex
     );
+
     setSupplementsByWeekday((prevSupplements) => ({
       ...prevSupplements,
       [weekday]: updatedMedications,
+    }));
+
+    // Auch den Status aktualisieren
+    setSupplementStatus((prevStatus) => ({
+      ...prevStatus,
+      [weekday]: {
+        ...prevStatus[weekday],
+        [medicationToDelete.medicationName]: false, // Setze den Status auf "Not Taken" beim Löschen
+      },
+    }));
+  };
+
+  const handleCheckSupplement = (weekday, medicationName) => {
+    setSupplementStatus((prevStatus) => ({
+      ...prevStatus,
+      [weekday]: {
+        ...prevStatus[weekday],
+        [medicationName]: !prevStatus[weekday][medicationName],
+      },
     }));
   };
 
@@ -90,13 +123,20 @@ export default function WeeklyOverview() {
               <AddButton onClick={() => handleAddSupplement(weekday)}>Add</AddButton>
             </WeekdayContent>
             {supplementsByWeekday[weekday].map((supplement, index) => (
-              <SupplementWrapper key={index}>
-
+              <SupplementWrapper key={`${supplement.medicationName}-${supplement.dosage}`}>
                 <SupplementName>{supplement.medicationName}</SupplementName>
                 <SupplementDosage>{supplement.dosage}</SupplementDosage>
-                <DeleteButton onClick={() => handleDeleteMedication(weekday, index)}>
-                  Delete
-                </DeleteButton>
+                <ButtonContainer>
+                  <CheckButton
+                    checked={supplementStatus[weekday][supplement.medicationName]}
+                    onClick={() => handleCheckSupplement(weekday, supplement.medicationName)}
+                  >
+                    {supplementStatus[weekday][supplement.medicationName] ? 'Taken' : 'Not Taken'}
+                  </CheckButton>
+                  <DeleteButton onClick={() => handleDeleteMedication(weekday, index)}>
+                    Delete
+                  </DeleteButton>
+                </ButtonContainer>
               </SupplementWrapper>
             ))}
           </Weekday>
@@ -160,11 +200,20 @@ const SupplementName = styled.div`
 
 const SupplementDosage = styled.div``;
 
+const ButtonContainer = styled.div`
+  display: flex;
+`;
+
+const CheckButton = styled.button`
+  background-color: ${(props) => (props.checked ? '#4caf50' : '#ddd')};
+  color: ${(props) => (props.checked ? 'white' : '#333')};
+`;
 
 const DeleteButton = styled.button`
   background-color: #f44336;
   color: white;
 `;
+
 const SearchContainer = styled.div`
   display: flex;
   align-items: center;
