@@ -1,17 +1,20 @@
 import React, { useState } from 'react';
 import styled from 'styled-components';
 import { dummyMedications } from '../../dummydata';
+import { uid } from 'uid';
+
+const hoursOfDay = Array.from({ length: 24 }, (_, i) => i);
 
 export default function WeeklyOverview() {
   const weekdays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedMedicationsByWeekday, setSelectedMedicationsByWeekday] = useState(() => {
-    const selectedMeds = {};
+  const [selectedSupplementsByWeekday, setSelectedSupplementsByWeekday] = useState(() => {
+    const selectedSupps = {};
     weekdays.forEach((weekday) => {
-      selectedMeds[weekday] = dummyMedications[0];
+      selectedSupps[weekday] = { medication: dummyMedications[0], selectedTime: '' };
     });
-    return selectedMeds;
+    return selectedSupps;
   });
   const [supplementsByWeekday, setSupplementsByWeekday] = useState(() => {
     const supplements = {};
@@ -20,21 +23,71 @@ export default function WeeklyOverview() {
     });
     return supplements;
   });
+  const [supplementStatus, setSupplementStatus] = useState(() => {
+    const status = {};
+    weekdays.forEach((weekday) => {
+      status[weekday] = {};
+      supplementsByWeekday[weekday].forEach((supplement) => {
+        status[weekday][supplement.key] = {};
+        hoursOfDay.forEach((hour) => {
+          status[weekday][supplement.key][hour] = false;
+        });
+      });
+    });
+    return status;
+  });
 
   const handleAddSupplement = (weekday) => {
+    const newSupplement = {
+      key: uid(),
+      ...selectedSupplementsByWeekday[weekday].medication,
+    };
+
     setSupplementsByWeekday((prevSupplements) => ({
       ...prevSupplements,
-      [weekday]: [...prevSupplements[weekday], selectedMedicationsByWeekday[weekday]],
+      [weekday]: [...prevSupplements[weekday], newSupplement],
     }));
   };
 
-  const handleDeleteMedication = (weekday, medicationIndex) => {
-    const updatedMedications = supplementsByWeekday[weekday].filter(
-      (_, index) => index !== medicationIndex
+  const handleDeleteSupplement = (weekday, supplementKey) => {
+    const updatedSupplements = supplementsByWeekday[weekday].filter(
+      (supplement) => supplement.key !== supplementKey
     );
+
     setSupplementsByWeekday((prevSupplements) => ({
       ...prevSupplements,
-      [weekday]: updatedMedications,
+      [weekday]: updatedSupplements,
+    }));
+
+    setSupplementStatus((prevStatus) => ({
+      ...prevStatus,
+      [weekday]: {
+        ...prevStatus[weekday],
+        [supplementKey]: {},
+      },
+    }));
+  };
+
+  const handleCheckSupplement = (weekday, supplementKey, selectedTime) => {
+    setSupplementStatus((prevStatus) => ({
+      ...prevStatus,
+      [weekday]: {
+        ...prevStatus[weekday],
+        [supplementKey]: {
+          ...prevStatus[weekday][supplementKey],
+          [selectedTime]: !prevStatus[weekday]?.[supplementKey]?.[selectedTime] || false,
+        },
+      },
+    }));
+  };
+
+  const handleTimeSelection = (weekday, supplementKey, selectedTime) => {
+    setSelectedSupplementsByWeekday((prevSelectedSupps) => ({
+      ...prevSelectedSupps,
+      [weekday]: {
+        ...prevSelectedSupps[weekday],
+        selectedTime,
+      },
     }));
   };
 
@@ -52,7 +105,7 @@ export default function WeeklyOverview() {
 
   return (
     <StyledContainer>
-      <Title>Wochenüberblick</Title>
+      <Title>Weekly Overview</Title>
 
       <SearchContainer>
         <input
@@ -69,34 +122,57 @@ export default function WeeklyOverview() {
           <Weekday key={weekday}>
             <WeekdayContent>
               <WeekdayName>{weekday}</WeekdayName>
-              <MedicationSelect
-                value={selectedMedicationsByWeekday[weekday].medicationName}
+              <SupplementSelect
+                value={selectedSupplementsByWeekday[weekday].medication.medicationName}
                 onChange={(event) => {
-                  const selectedMedication = dummyMedications.find(
-                    (med) => med.medicationName === event.target.value
+                  const selectedSupplement = dummyMedications.find(
+                    (supplement) => supplement.medicationName === event.target.value
                   );
-                  setSelectedMedicationsByWeekday((prevSelectedMeds) => ({
-                    ...prevSelectedMeds,
-                    [weekday]: selectedMedication,
+                  setSelectedSupplementsByWeekday((prevSelectedSupps) => ({
+                    ...prevSelectedSupps,
+                    [weekday]: {
+                      ...prevSelectedSupps[weekday],
+                      medication: selectedSupplement,
+                    },
                   }));
                 }}
               >
-                {dummyMedications.map((med) => (
-                  <option key={med.id} value={med.medicationName}>
-                    {med.medicationName}
+                {dummyMedications.map((supplement) => (
+                  <option key={supplement.key} value={supplement.medicationName}>
+                    {supplement.medicationName}
                   </option>
                 ))}
-              </MedicationSelect>
+              </SupplementSelect>
               <AddButton onClick={() => handleAddSupplement(weekday)}>Add</AddButton>
             </WeekdayContent>
-            {supplementsByWeekday[weekday].map((supplement, index) => (
-              <SupplementWrapper key={index}>
-
+            {supplementsByWeekday[weekday].map((supplement) => (
+              <SupplementWrapper key={`${supplement.medicationName}-${supplement.dosage}`}>
+                <TimeSelectionContainer>
+                  <TimeSelectionDropdown
+                    value={selectedSupplementsByWeekday[weekday]?.selectedTime || ''}
+                    onChange={(event) => handleTimeSelection(weekday, supplement.key, event.target.value)}
+                  >
+                    <option value="" disabled>Select time</option>
+                    {hoursOfDay.map((hour) => (
+                      <option key={hour} value={hour}>
+                        {hour} Uhr
+                      </option>
+                    ))}
+                  </TimeSelectionDropdown>
+                </TimeSelectionContainer>
                 <SupplementName>{supplement.medicationName}</SupplementName>
                 <SupplementDosage>{supplement.dosage}</SupplementDosage>
-                <DeleteButton onClick={() => handleDeleteMedication(weekday, index)}>
-                  Delete
-                </DeleteButton>
+                <ButtonContainer>
+                  <CheckButton
+                    checked={supplementStatus[weekday]?.[supplement.key]?.[selectedSupplementsByWeekday[weekday]?.selectedTime] || false}
+                    onClick={() => handleCheckSupplement(weekday, supplement.key, selectedSupplementsByWeekday[weekday]?.selectedTime)}
+                  >
+                    Taken
+                  </CheckButton>
+                  <DeleteButton onClick={() => handleDeleteSupplement(weekday, supplement.key)}>
+                    Delete
+                  </DeleteButton>
+                </ButtonContainer>
               </SupplementWrapper>
             ))}
           </Weekday>
@@ -133,12 +209,21 @@ const WeekdayContent = styled.div`
   align-items: center;
 `;
 
+const TimeSelectionContainer = styled.div`
+  width: 120px;
+  margin-right: 10px;
+`;
+
+const TimeSelectionDropdown = styled.select`
+  width: 100%;
+`;
+
 const WeekdayName = styled.div`
   font-weight: bold;
   margin-right: 10px;
 `;
 
-const MedicationSelect = styled.select`
+const SupplementSelect = styled.select`
   padding: 5px;
   margin-right: 10px;
 `;
@@ -160,11 +245,20 @@ const SupplementName = styled.div`
 
 const SupplementDosage = styled.div``;
 
+const ButtonContainer = styled.div`
+  display: flex;
+`;
+
+const CheckButton = styled.button`
+  background-color: ${(props) => (props.checked ? '#4caf50' : '#ddd')};
+  color: ${(props) => (props.checked ? 'white' : '#333')};
+`;
 
 const DeleteButton = styled.button`
   background-color: #f44336;
   color: white;
 `;
+
 const SearchContainer = styled.div`
   display: flex;
   align-items: center;
