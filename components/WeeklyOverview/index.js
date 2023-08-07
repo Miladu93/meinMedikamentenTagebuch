@@ -124,6 +124,7 @@ export default function WeeklyOverview() {
               <WeekdayName>{weekday}</WeekdayName>
               <SupplementSelect
                 value={selectedSupplementsByWeekday[weekday].medication.medicationName}
+
                 onChange={(event) => {
                   const selectedSupplement = dummyMedications.find(
                     (supplement) => supplement.medicationName === event.target.value
@@ -134,6 +135,7 @@ export default function WeeklyOverview() {
                       ...prevSelectedSupps[weekday],
                       medication: selectedSupplement,
                     },
+
                   }));
                 }}
               >
@@ -160,14 +162,17 @@ export default function WeeklyOverview() {
                     ))}
                   </TimeSelectionDropdown>
                 </TimeSelectionContainer>
+
                 <SupplementName>{supplement.medicationName}</SupplementName>
                 <SupplementDosage>{supplement.dosage}</SupplementDosage>
                 <ButtonContainer>
                   <CheckButton
+
                     checked={supplementStatus[weekday]?.[supplement.key]?.[selectedSupplementsByWeekday[weekday]?.selectedTime] || false}
                     onClick={() => handleCheckSupplement(weekday, supplement.key, selectedSupplementsByWeekday[weekday]?.selectedTime)}
                   >
                     Taken
+
                   </CheckButton>
                   <DeleteButton onClick={() => handleDeleteSupplement(weekday, supplement.key)}>
                     Delete
@@ -253,6 +258,16 @@ const CheckButton = styled.button`
   background-color: ${(props) => (props.checked ? '#4caf50' : '#ddd')};
   color: ${(props) => (props.checked ? 'white' : '#333')};
 `;
+
+const ButtonContainer = styled.div`
+  display: flex;
+`;
+
+const CheckButton = styled.button`
+  background-color: ${(props) => (props.checked ? '#4caf50' : '#ddd')};
+  color: ${(props) => (props.checked ? 'white' : '#333')};
+`;
+
 
 const DeleteButton = styled.button`
   background-color: #f44336;
