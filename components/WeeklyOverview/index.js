@@ -87,7 +87,7 @@ export default function WeeklyOverview() {
     });
   };
 
-  const handleTimeSelection = (weekday, supplementKey, selectedTime) => {
+  const handleTimeSelection = (weekday, selectedTime) => {
     setSelectedSupplementsByWeekday((prevSelectedSupps) => ({
       ...prevSelectedSupps,
       [weekday]: {
