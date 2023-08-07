@@ -3,7 +3,7 @@ import styled from 'styled-components';
 import { dummyMedications } from '../../dummydata';
 import { uid } from 'uid';
 
-const hoursOfDay = Array.from({ length: 24 }, (_, i) => i);
+const hoursOfDay = Array.from({ length: 24 }, (_, index) => index);
 
 export default function WeeklyOverview() {
   const weekdays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
@@ -69,16 +69,22 @@ export default function WeeklyOverview() {
   };
 
   const handleCheckSupplement = (weekday, supplementKey, selectedTime) => {
-    setSupplementStatus((prevStatus) => ({
-      ...prevStatus,
-      [weekday]: {
-        ...prevStatus[weekday],
-        [supplementKey]: {
-          ...prevStatus[weekday][supplementKey],
-          [selectedTime]: !prevStatus[weekday]?.[supplementKey]?.[selectedTime] || false,
-        },
-      },
-    }));
+    setSupplementStatus(prevStatus => {
+      const currentDayStatus = prevStatus[weekday] || {};
+      const currentSupplementStatus = currentDayStatus[supplementKey] || {};
+      const newTimeStatus = !currentSupplementStatus[selectedTime] || false;
+      const updatedStatus = {
+        ...prevStatus,
+        [weekday]: {
+          ...currentDayStatus,
+          [supplementKey]: {
+            ...currentSupplementStatus,
+            [selectedTime]: newTimeStatus
+          }
+        }
+      };
+      return updatedStatus;
+    });
   };
 
   const handleTimeSelection = (weekday, supplementKey, selectedTime) => {
@@ -124,7 +130,6 @@ export default function WeeklyOverview() {
               <WeekdayName>{weekday}</WeekdayName>
               <SupplementSelect
                 value={selectedSupplementsByWeekday[weekday].medication.medicationName}
-
                 onChange={(event) => {
                   const selectedSupplement = dummyMedications.find(
                     (supplement) => supplement.medicationName === event.target.value
@@ -135,7 +140,6 @@ export default function WeeklyOverview() {
                       ...prevSelectedSupps[weekday],
                       medication: selectedSupplement,
                     },
-
                   }));
                 }}
               >
@@ -162,22 +166,17 @@ export default function WeeklyOverview() {
                     ))}
                   </TimeSelectionDropdown>
                 </TimeSelectionContainer>
-
                 <SupplementName>{supplement.medicationName}</SupplementName>
                 <SupplementDosage>{supplement.dosage}</SupplementDosage>
-                <ButtonContainer>
-                  <CheckButton
-
-                    checked={supplementStatus[weekday]?.[supplement.key]?.[selectedSupplementsByWeekday[weekday]?.selectedTime] || false}
-                    onClick={() => handleCheckSupplement(weekday, supplement.key, selectedSupplementsByWeekday[weekday]?.selectedTime)}
-                  >
-                    Taken
-
-                  </CheckButton>
-                  <DeleteButton onClick={() => handleDeleteSupplement(weekday, supplement.key)}>
-                    Delete
-                  </DeleteButton>
-                </ButtonContainer>
+                <CheckButton
+                  checked={supplementStatus[weekday]?.[supplement.key]?.[selectedSupplementsByWeekday[weekday]?.selectedTime] || false}
+                  onClick={() => handleCheckSupplement(weekday, supplement.key, selectedSupplementsByWeekday[weekday]?.selectedTime)}
+                >
+                  Taken
+                </CheckButton>
+                <DeleteButton onClick={() => handleDeleteSupplement(weekday, supplement.key)}>
+                  Delete
+                </DeleteButton>
               </SupplementWrapper>
             ))}
           </Weekday>
@@ -250,24 +249,10 @@ const SupplementName = styled.div`
 
 const SupplementDosage = styled.div``;
 
-const ButtonContainer = styled.div`
-  display: flex;
-`;
-
 const CheckButton = styled.button`
   background-color: ${(props) => (props.checked ? '#4caf50' : '#ddd')};
   color: ${(props) => (props.checked ? 'white' : '#333')};
 `;
-
-const ButtonContainer = styled.div`
-  display: flex;
-`;
-
-const CheckButton = styled.button`
-  background-color: ${(props) => (props.checked ? '#4caf50' : '#ddd')};
-  color: ${(props) => (props.checked ? 'white' : '#333')};
-`;
-
 
 const DeleteButton = styled.button`
   background-color: #f44336;
