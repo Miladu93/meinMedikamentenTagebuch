@@ -73,6 +73,16 @@ export default function WeeklyOverview() {
     }));
   };
 
+  const handleDeleteMedication = (weekday, medicationIndex) => {
+    const updatedMedications = supplementsByWeekday[weekday].filter(
+      (_, index) => index !== medicationIndex
+    );
+    setSupplementsByWeekday((prevSupplements) => ({
+      ...prevSupplements,
+      [weekday]: updatedMedications,
+    }));
+  };
+
   const handleSearch = () => {
     const filteredData = {};
     weekdays.forEach((weekday) => {
@@ -202,6 +212,7 @@ const SupplementName = styled.div`
 
 const SupplementDosage = styled.div``;
 
+
 const ButtonContainer = styled.div`
   display: flex;
 `;
@@ -210,6 +221,7 @@ const CheckButton = styled.button`
   background-color: ${(props) => (props.checked ? '#4caf50' : '#ddd')};
   color: ${(props) => (props.checked ? 'white' : '#333')};
 `;
+
 
 const DeleteButton = styled.button`
   background-color: #f44336;
