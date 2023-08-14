@@ -3,6 +3,8 @@ import styled from 'styled-components';
 import { dummyMedications } from '../../dummydata';
 import { uid } from 'uid';
 
+const hoursOfDay = Array.from({ length: 24 }, (_, index) => index);
+
 export default function WeeklyOverview() {
   const weekdays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 
@@ -10,7 +12,7 @@ export default function WeeklyOverview() {
   const [selectedSupplementsByWeekday, setSelectedSupplementsByWeekday] = useState(() => {
     const selectedSupps = {};
     weekdays.forEach((weekday) => {
-      selectedSupps[weekday] = dummyMedications[0];
+      selectedSupps[weekday] = { medication: dummyMedications[0], selectedTime: '' };
     });
     return selectedSupps;
   });
@@ -26,7 +28,10 @@ export default function WeeklyOverview() {
     weekdays.forEach((weekday) => {
       status[weekday] = {};
       supplementsByWeekday[weekday].forEach((supplement) => {
-        status[weekday][supplement.key] = false;
+        status[weekday][supplement.key] = {};
+        hoursOfDay.forEach((hour) => {
+          status[weekday][supplement.key][hour] = false;
+        });
       });
     });
     return status;
@@ -34,8 +39,8 @@ export default function WeeklyOverview() {
 
   const handleAddSupplement = (weekday) => {
     const newSupplement = {
-      key: uid(), 
-      ...selectedSupplementsByWeekday[weekday],
+      key: uid(),
+      ...selectedSupplementsByWeekday[weekday].medication,
     };
 
     setSupplementsByWeekday((prevSupplements) => ({
@@ -58,28 +63,37 @@ export default function WeeklyOverview() {
       ...prevStatus,
       [weekday]: {
         ...prevStatus[weekday],
-        [supplementKey]: false,
+        [supplementKey]: {},
       },
     }));
   };
 
-  const handleCheckSupplement = (weekday, supplementKey) => {
-    setSupplementStatus((prevStatus) => ({
-      ...prevStatus,
+  const handleCheckSupplement = (weekday, supplementKey, selectedTime) => {
+    setSupplementStatus(prevStatus => {
+      const currentDayStatus = prevStatus[weekday] || {};
+      const currentSupplementStatus = currentDayStatus[supplementKey] || {};
+      const newTimeStatus = !currentSupplementStatus[selectedTime] || false;
+      const updatedStatus = {
+        ...prevStatus,
+        [weekday]: {
+          ...currentDayStatus,
+          [supplementKey]: {
+            ...currentSupplementStatus,
+            [selectedTime]: newTimeStatus
+          }
+        }
+      };
+      return updatedStatus;
+    });
+  };
+
+  const handleTimeSelection = (weekday, selectedTime) => {
+    setSelectedSupplementsByWeekday((prevSelectedSupps) => ({
+      ...prevSelectedSupps,
       [weekday]: {
-        ...prevStatus[weekday],
-        [supplementKey]: !prevStatus[weekday][supplementKey],
+        ...prevSelectedSupps[weekday],
+        selectedTime,
       },
-    }));
-  };
-
-  const handleDeleteMedication = (weekday, medicationIndex) => {
-    const updatedMedications = supplementsByWeekday[weekday].filter(
-      (_, index) => index !== medicationIndex
-    );
-    setSupplementsByWeekday((prevSupplements) => ({
-      ...prevSupplements,
-      [weekday]: updatedMedications,
     }));
   };
 
@@ -115,14 +129,17 @@ export default function WeeklyOverview() {
             <WeekdayContent>
               <WeekdayName>{weekday}</WeekdayName>
               <SupplementSelect
-                value={selectedSupplementsByWeekday[weekday].medicationName}
+                value={selectedSupplementsByWeekday[weekday].medication.medicationName}
                 onChange={(event) => {
                   const selectedSupplement = dummyMedications.find(
                     (supplement) => supplement.medicationName === event.target.value
                   );
                   setSelectedSupplementsByWeekday((prevSelectedSupps) => ({
                     ...prevSelectedSupps,
-                    [weekday]: selectedSupplement,
+                    [weekday]: {
+                      ...prevSelectedSupps[weekday],
+                      medication: selectedSupplement,
+                    },
                   }));
                 }}
               >
@@ -136,19 +153,30 @@ export default function WeeklyOverview() {
             </WeekdayContent>
             {supplementsByWeekday[weekday].map((supplement) => (
               <SupplementWrapper key={`${supplement.medicationName}-${supplement.dosage}`}>
+                <TimeSelectionContainer>
+                  <TimeSelectionDropdown
+                    value={selectedSupplementsByWeekday[weekday]?.selectedTime || ''}
+                    onChange={(event) => handleTimeSelection(weekday, supplement.key, event.target.value)}
+                  >
+                    <option value="" disabled>Select time</option>
+                    {hoursOfDay.map((hour) => (
+                      <option key={hour} value={hour}>
+                        {hour} Uhr
+                      </option>
+                    ))}
+                  </TimeSelectionDropdown>
+                </TimeSelectionContainer>
                 <SupplementName>{supplement.medicationName}</SupplementName>
                 <SupplementDosage>{supplement.dosage}</SupplementDosage>
-                <ButtonContainer>
-                  <CheckButton
-                    checked={supplementStatus[weekday][supplement.key]}
-                    onClick={() => handleCheckSupplement(weekday, supplement.key)}
-                  >
-                    {supplementStatus[weekday][supplement.key] ? 'Taken' : 'Not Taken'}
-                  </CheckButton>
-                  <DeleteButton onClick={() => handleDeleteSupplement(weekday, supplement.key)}>
-                    Delete
-                  </DeleteButton>
-                </ButtonContainer>
+                <CheckButton
+                  checked={supplementStatus[weekday]?.[supplement.key]?.[selectedSupplementsByWeekday[weekday]?.selectedTime] || false}
+                  onClick={() => handleCheckSupplement(weekday, supplement.key, selectedSupplementsByWeekday[weekday]?.selectedTime)}
+                >
+                  Taken
+                </CheckButton>
+                <DeleteButton onClick={() => handleDeleteSupplement(weekday, supplement.key)}>
+                  Delete
+                </DeleteButton>
               </SupplementWrapper>
             ))}
           </Weekday>
@@ -185,6 +213,15 @@ const WeekdayContent = styled.div`
   align-items: center;
 `;
 
+const TimeSelectionContainer = styled.div`
+  width: 120px;
+  margin-right: 10px;
+`;
+
+const TimeSelectionDropdown = styled.select`
+  width: 100%;
+`;
+
 const WeekdayName = styled.div`
   font-weight: bold;
   margin-right: 10px;
@@ -212,16 +249,10 @@ const SupplementName = styled.div`
 
 const SupplementDosage = styled.div``;
 
-
-const ButtonContainer = styled.div`
-  display: flex;
-`;
-
 const CheckButton = styled.button`
   background-color: ${(props) => (props.checked ? '#4caf50' : '#ddd')};
   color: ${(props) => (props.checked ? 'white' : '#333')};
 `;
-
 
 const DeleteButton = styled.button`
   background-color: #f44336;
